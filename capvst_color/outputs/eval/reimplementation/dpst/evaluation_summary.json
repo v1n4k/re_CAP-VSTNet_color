@@ -1,0 +1,12 @@
+{
+  "photoreal_benchmark": {
+    "count": 59,
+    "gram_loss": 0.00044092712892437457,
+    "h_corr": 0.5515705115145368,
+    "lpips": 0.3395167738199234,
+    "protocol_note": "mask-free approximation of the paper photorealistic benchmark",
+    "psnr": 12.629327398235516,
+    "ssim": 0.5927392259492712,
+    "uses_masks": false
+  }
+}

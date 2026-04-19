@@ -61,3 +61,14 @@ def small_benchmark_root(tmp_path: Path) -> Path:
         write_rgb_image(style_dir / basename, seed=index + 300, size=(36, 36))
         write_rgb_image(gt_dir / basename, seed=index + 400, size=(36, 36))
     return tmp_path / "benchmark"
+
+
+@pytest.fixture
+def small_dpst_root(tmp_path: Path) -> Path:
+    input_dir = tmp_path / "dpst" / "input"
+    style_dir = tmp_path / "dpst" / "style"
+    for index in range(2):
+        suffix = f"{index:02d}"
+        write_rgb_image(input_dir / f"in{suffix}.png", seed=index + 500, size=(36, 36))
+        write_rgb_image(style_dir / f"tar{suffix}.png", seed=index + 600, size=(36, 36))
+    return tmp_path / "dpst"

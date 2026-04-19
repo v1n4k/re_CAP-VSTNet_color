@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -83,6 +85,45 @@ def compute_ssim(
     return ssim_map.mean(dim=(1, 2, 3)).detach().cpu().tolist()
 
 
+def compute_hcorr(prediction: torch.Tensor, style_rgb: torch.Tensor, *, bins: int = 16) -> list[float]:
+    prediction, style_rgb = _validate_batched_pair(prediction, style_rgb)
+    try:
+        from skimage.color import rgb2lab
+    except ImportError as exc:
+        raise ImportError(
+            "scikit-image is required for H-Corr computation. Install the optional 'metrics' dependency."
+        ) from exc
+
+    scores: list[float] = []
+    pred_np = prediction.detach().cpu().permute(0, 2, 3, 1).numpy()
+    style_np = style_rgb.detach().cpu().permute(0, 2, 3, 1).numpy()
+    bin_ranges = ((0.0, 100.0), (-128.0, 127.0), (-128.0, 127.0))
+
+    for pred_image, style_image in zip(pred_np, style_np):
+        pred_lab = rgb2lab(np.clip(pred_image, 0.0, 1.0))
+        style_lab = rgb2lab(np.clip(style_image, 0.0, 1.0))
+        pred_hist = np.histogramdd(pred_lab.reshape(-1, 3), bins=bins, range=bin_ranges)[0].astype(np.float64)
+        style_hist = np.histogramdd(style_lab.reshape(-1, 3), bins=bins, range=bin_ranges)[0].astype(np.float64)
+        scores.append(_histogram_correlation(pred_hist.reshape(-1), style_hist.reshape(-1)))
+    return scores
+
+
+def align_bchw_to_reference(ref_bchw: torch.Tensor, x_bchw: torch.Tensor) -> torch.Tensor:
+    ref_bchw = validate_image_tensor(ref_bchw, name="ref_bchw")
+    x_bchw = validate_image_tensor(x_bchw, name="x_bchw")
+    if ref_bchw.ndim == 3:
+        ref_bchw = ref_bchw.unsqueeze(0)
+    if x_bchw.ndim == 3:
+        x_bchw = x_bchw.unsqueeze(0)
+    if ref_bchw.shape[0] != x_bchw.shape[0]:
+        raise ValueError(
+            f"ref_bchw and x_bchw must have the same batch size, got {ref_bchw.shape[0]} and {x_bchw.shape[0]}."
+        )
+    if ref_bchw.shape[-2:] == x_bchw.shape[-2:]:
+        return x_bchw
+    return F.interpolate(x_bchw, size=ref_bchw.shape[-2:], mode="bilinear", align_corners=False)
+
+
 def summarize_numeric_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     numeric_keys = sorted(
         {
@@ -94,7 +135,7 @@ def summarize_numeric_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     )
     summary: dict[str, Any] = {"count": len(rows)}
     for key in numeric_keys:
-        values = [float(row[key]) for row in rows if key in row]
+        values = [float(row[key]) for row in rows if key in row and math.isfinite(float(row[key]))]
         if values:
             summary[key] = float(sum(values) / len(values))
     return summary
@@ -131,3 +172,17 @@ def _validate_batched_pair(
             f"prediction and target must have the same shape, got {prediction.shape} and {target.shape}."
         )
     return prediction, target
+
+
+def _histogram_correlation(left: np.ndarray, right: np.ndarray) -> float:
+    left = left.astype(np.float64, copy=False)
+    right = right.astype(np.float64, copy=False)
+    left_mean = left.mean()
+    right_mean = right.mean()
+    left_centered = left - left_mean
+    right_centered = right - right_mean
+    numerator = float(np.sum(left_centered * right_centered))
+    denominator = float(np.linalg.norm(left_centered) * np.linalg.norm(right_centered))
+    if denominator <= 1e-12:
+        return 1.0 if np.allclose(left, right) else 0.0
+    return numerator / denominator

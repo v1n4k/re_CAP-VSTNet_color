@@ -162,9 +162,8 @@ Thumbs.db
 *.swo
 
 # Project specific
-# Explicitly do NOT ignore .pth files (PyTorch models)
-!*.pth
-
 # Dataset folders (large files)
-# CAP-VSTNet/data/
-# capvst_color/checkpoints/ (user wants to keep .pth, which are here)
+capvst_color/data/
+
+# Checkpoints (large model files)
+capvst_color/outputs/**/checkpoints/

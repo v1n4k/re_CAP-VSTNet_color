@@ -1,0 +1,12 @@
+{
+  "photoreal_benchmark": {
+    "count": 59,
+    "gram_loss": 0.00015148026725031647,
+    "h_corr": 0.5998226074327019,
+    "lpips": 0.33709651446443495,
+    "protocol_note": "mask-free evaluation using original CAP-VSTNet inference",
+    "psnr": 13.615222619751753,
+    "ssim": 0.6711107840982534,
+    "uses_masks": false
+  }
+}

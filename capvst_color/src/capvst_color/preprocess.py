@@ -126,16 +126,29 @@ def center_crop(image: Image.Image, crop_size: int) -> Image.Image:
     return image.crop((left, top, left + crop_size, top + crop_size))
 
 
+def center_crop_to_size(image: Image.Image, width: int, height: int) -> Image.Image:
+    if width <= 0 or height <= 0:
+        raise ValueError(f"target size must be positive, got {(width, height)}.")
+    image_width, image_height = image.size
+    if image_width < width or image_height < height:
+        raise ValueError(
+            f"Cannot center crop target size {(width, height)} from image of size {image.size}."
+        )
+    left = (image_width - width) // 2
+    top = (image_height - height) // 2
+    return image.crop((left, top, left + width, top + height))
+
+
 def paired_center_crop(
     content_image: Image.Image,
     gt_image: Image.Image,
     crop_size: int,
 ) -> tuple[Image.Image, Image.Image]:
-    if content_image.size != gt_image.size:
-        raise ValueError(
-            f"content_image and gt_image must share the same size, got {content_image.size} and {gt_image.size}."
-        )
-    return center_crop(content_image, crop_size), center_crop(gt_image, crop_size)
+    common_width = min(content_image.width, gt_image.width)
+    common_height = min(content_image.height, gt_image.height)
+    aligned_content = center_crop_to_size(content_image, common_width, common_height)
+    aligned_gt = center_crop_to_size(gt_image, common_width, common_height)
+    return center_crop(aligned_content, crop_size), center_crop(aligned_gt, crop_size)
 
 
 def resize_pair_like_content(

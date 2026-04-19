@@ -3,8 +3,8 @@
   "device": "cuda",
   "datasets": {
     "fivek": {
-      "input_dir": "/path/to/fivek/input",
-      "style_dir": "/path/to/fivek/expert_c",
+      "input_dir": "../data/fivek/input",
+      "style_dir": "../data/fivek/expert_c",
       "image_extensions": [".jpg", ".jpeg", ".png"],
       "train_count": 4500,
       "val_count": 500
@@ -14,13 +14,13 @@
     "vgg_checkpoint_path": "../checkpoints/vgg_normalised.pth"
   },
   "training": {
-    "batch_size": 2,
+    "batch_size": 8,
     "new_size": 512,
     "crop_size": 256,
-    "num_workers": 0,
-    "pin_memory": false,
+    "num_workers": 12,
+    "pin_memory": true,
     "win_radius": 1,
-    "iterations": 160000,
+    "iterations": 100000,
     "lr": 0.0001,
     "lr_decay": 0.00005,
     "style_weight": 1.0,
@@ -29,12 +29,12 @@
     "rec_weight": 10.0,
     "grad_clip_norm": 5.0,
     "lap_gradient_clip": 0.05,
-    "output_dir": "../outputs/train_fivek",
+    "output_dir": "../outputs/train/largerscale_fivek",
     "resume_from": null,
-    "checkpoint_every": 10000,
+    "checkpoint_every": 3000,
     "image_every": 1000,
     "log_every": 10,
-    "validation_every": 10000,
+    "validation_every": 3000,
     "validation_render_limit": 4
   },
   "validation": {

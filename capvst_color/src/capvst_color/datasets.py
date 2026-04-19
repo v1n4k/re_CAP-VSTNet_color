@@ -87,21 +87,38 @@ def discover_photoreal_benchmark_records(
     gt_dir: str | Path,
     *,
     image_extensions: Iterable[str] = IMAGE_EXTENSIONS,
+    content_basename_prefix: str = "",
+    style_basename_prefix: str = "",
+    gt_basename_prefix: str = "",
+    exclude_record_keys: Iterable[str] = (),
 ) -> list[PhotorealBenchmarkRecord]:
-    content_files = _discover_files(Path(content_dir), image_extensions)
-    style_files = _discover_files(Path(style_dir), image_extensions)
-    gt_files = _discover_files(Path(gt_dir), image_extensions)
-    basenames = sorted(set(content_files) & set(style_files) & set(gt_files))
-    if not basenames:
+    content_files = _normalize_discovered_files(
+        _discover_files(Path(content_dir), image_extensions),
+        basename_prefix=content_basename_prefix,
+        label="content",
+    )
+    style_files = _normalize_discovered_files(
+        _discover_files(Path(style_dir), image_extensions),
+        basename_prefix=style_basename_prefix,
+        label="style",
+    )
+    gt_files = _normalize_discovered_files(
+        _discover_files(Path(gt_dir), image_extensions),
+        basename_prefix=gt_basename_prefix,
+        label="gt",
+    )
+    excluded = {key for key in exclude_record_keys}
+    record_keys = sorted((set(content_files) & set(style_files) & set(gt_files)) - excluded)
+    if not record_keys:
         raise ValueError("No matched photoreal benchmark basenames were found.")
     return [
         PhotorealBenchmarkRecord(
-            basename=basename,
-            content_path=content_files[basename],
-            style_path=style_files[basename],
-            gt_path=gt_files[basename],
+            basename=content_files[record_key].stem,
+            content_path=content_files[record_key],
+            style_path=style_files[record_key],
+            gt_path=gt_files[record_key],
         )
-        for basename in basenames
+        for record_key in record_keys
     ]
 
 
@@ -280,3 +297,29 @@ def _discover_files(directory: Path, image_extensions: Iterable[str]) -> dict[st
             continue
         files[path.stem] = path
     return files
+
+
+def _normalize_discovered_files(
+    files: dict[str, Path],
+    *,
+    basename_prefix: str,
+    label: str,
+) -> dict[str, Path]:
+    normalized: dict[str, Path] = {}
+    for stem, path in files.items():
+        if basename_prefix:
+            if not stem.startswith(basename_prefix):
+                continue
+            record_key = stem.removeprefix(basename_prefix)
+            if not record_key:
+                raise ValueError(
+                    f"{label} file {path} must contain a non-empty suffix after prefix {basename_prefix!r}."
+                )
+        else:
+            record_key = stem
+        if record_key in normalized:
+            raise ValueError(
+                f"Duplicate normalized {label} basename {record_key!r} found for {normalized[record_key]} and {path}."
+            )
+        normalized[record_key] = path
+    return normalized

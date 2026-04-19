@@ -1,0 +1,29 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "checkpoint": "../outputs_largerscale/train_fivek/checkpoints/best.pt",
+  "datasets": {
+    "benchmark": {
+      "content_dir": "/home/jhua0805/5405/Reproduce_SA-LUT/data/pst50/paired/content",
+      "style_dir": "/home/jhua0805/5405/Reproduce_SA-LUT/data/pst50/paired/style",
+      "gt_dir": "/home/jhua0805/5405/Reproduce_SA-LUT/data/pst50/paired/gt",
+      "image_extensions": [".jpg", ".jpeg", ".png"],
+      "content_basename_prefix": "",
+      "style_basename_prefix": "",
+      "gt_basename_prefix": "",
+      "max_size": null
+    }
+  },
+  "model": {
+    "vgg_checkpoint_path": "../checkpoints/vgg_normalised.pth"
+  },
+  "evaluation": {
+    "output_dir": "../outputs/eval/reimplementation/pst50",
+    "uses_masks": false,
+    "run_benchmark": true,
+    "run_fivek_sanity": false,
+    "benchmark_render_limit": 50,
+    "save_images": false,
+    "enable_lpips": true
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "count": 50,
+  "gram_loss": 4.227152413989188e-05,
+  "h_corr": 0.7638165993560264,
+  "lpips": 0.18452541887760163,
+  "protocol_note": "mask-free approximation of the paper photorealistic benchmark",
+  "psnr": 19.154761219024657,
+  "ssim": 0.7851650661230087,
+  "uses_masks": false
+}

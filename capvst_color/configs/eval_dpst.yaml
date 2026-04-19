@@ -1,0 +1,30 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "checkpoint": "../outputs_largerscale/train_fivek/checkpoints/best.pt",
+  "datasets": {
+    "benchmark": {
+      "content_dir": "../data/dpst/examples/input",
+      "style_dir": "../data/dpst/examples/style",
+      "gt_dir": "../data/dpst/examples/input",
+      "image_extensions": [".jpg", ".jpeg", ".png"],
+      "content_basename_prefix": "in",
+      "style_basename_prefix": "tar",
+      "gt_basename_prefix": "in",
+      "exclude_record_keys": ["23"],
+      "max_size": null
+    }
+  },
+  "model": {
+    "vgg_checkpoint_path": "../checkpoints/vgg_normalised.pth"
+  },
+  "evaluation": {
+    "output_dir": "../outputs/eval/reimplementation/dpst",
+    "uses_masks": false,
+    "run_benchmark": true,
+    "run_fivek_sanity": false,
+    "benchmark_render_limit": 50,
+    "save_images": false,
+    "enable_lpips": true
+  }
+}
